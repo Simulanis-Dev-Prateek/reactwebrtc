@@ -15,6 +15,7 @@ const RoomPage = () => {
   }, []);
 
   const handleCallUser = useCallback(async () => {
+    
     const stream = await navigator.mediaDevices.getDisplayMedia({
       video: true, 
     });
