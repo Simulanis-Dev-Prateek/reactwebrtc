@@ -15,25 +15,56 @@ const RoomPage = () => {
   }, []);
 
   const handleCallUser = useCallback(async () => {
-    
     const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true, 
+      audio: true,
+      video: true,
     });
     const offer = await peer.getOffer();
     socket.emit("user:call", { to: remoteSocketId, offer });
     setMyStream(stream);
   }, [remoteSocketId, socket]);
 
+  const handleCallUsermain = useCallback(async () => {
+    // const stream = await navigator.mediaDevices.getDisplayMedia({
+    //   audio: true,
+    //   video: true,
+    // });
+    console.log("called from handle incoming call")
+    const offer = await peer.getOffer();
+    socket.emit("user:callfromuser", { to: remoteSocketId, offer });
+    // socket.emit("user:call", { to: remoteSocketId, offer });
+    // setMyStream(stream);
+  }, [remoteSocketId, socket]);
+
   const handleIncommingCall = useCallback(
     async ({ from, offer }) => {
       setRemoteSocketId(from);
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true, 
-      });
-      setMyStream(stream);
-      console.log(`Incoming Call`, from, offer);
+      // const stream = await navigator.mediaDevices.getDisplayMedia({
+      //   audio: true,
+      //   video: false,
+      // });
+      // setMyStream(myStream);
+      console.log(`Incoming Call`, from);
       const ans = await peer.getAnswer(offer);
       socket.emit("call:accepted", { to: from, ans });
+      // sendStreams()
+      // handleCallUsermain(from)
+    },
+    [socket]
+  );
+
+  const handleIncommingCallfromuser = useCallback(
+    async ({ from, offer }) => {
+      setRemoteSocketId(from);
+      // const stream = await navigator.mediaDevices.getDisplayMedia({
+      //   audio: true,
+      //   video: false,
+      // });
+      // setMyStream(myStream);
+      console.log(`Incoming Call from user`, from);
+      const ans = await peer.getAnswer(offer);
+      socket.emit("call:accepted", { to: from, ans });
+      // sendStreams()
     },
     [socket]
   );
@@ -80,7 +111,7 @@ const RoomPage = () => {
   useEffect(() => {
     peer.peer.addEventListener("track", async (ev) => {
       const remoteStream = ev.streams;
-      console.log("GOT TRACKS!!");
+      // console.log("GOT TRACKS!!");
       setRemoteStream(remoteStream[0]);
     });
   }, []);
@@ -88,6 +119,7 @@ const RoomPage = () => {
   useEffect(() => {
     socket.on("user:joined", handleUserJoined);
     socket.on("incomming:call", handleIncommingCall);
+    socket.on("incomming:callfromuser", handleIncommingCallfromuser);
     socket.on("call:accepted", handleCallAccepted);
     socket.on("peer:nego:needed", handleNegoNeedIncomming);
     socket.on("peer:nego:final", handleNegoNeedFinal);
@@ -98,6 +130,7 @@ const RoomPage = () => {
       socket.off("call:accepted", handleCallAccepted);
       socket.off("peer:nego:needed", handleNegoNeedIncomming);
       socket.off("peer:nego:final", handleNegoNeedFinal);
+      socket.off("incomming:callfromuser", handleIncommingCallfromuser);
     };
   }, [
     socket,
@@ -112,16 +145,17 @@ const RoomPage = () => {
     <div>
       <h1>Room Page</h1>
       <h4>{remoteSocketId ? "Connected" : "No one in room"}</h4>
-      {myStream && <button onClick={sendStreams}>Send Stream</button>}
-      {remoteSocketId && <button onClick={handleCallUser}>CALL</button>}
+      {/* {remoteSocketId && <button onClick={sendStreams}>Send Stream</button>} */}
+      {remoteSocketId && <button onClick={handleCallUser}>Share Screen</button>}
+      {remoteSocketId && <button onClick={handleCallUsermain}>See Screen</button>}
       {myStream && (
         <>
           <h1>My Stream</h1>
           <ReactPlayer
             playing
             muted
-            height="100px"
-            width="200px"
+            height="400px"
+            width="400px"
             url={myStream}
           />
         </>
@@ -132,8 +166,8 @@ const RoomPage = () => {
           <ReactPlayer
             playing
             muted
-            height="100px"
-            width="200px"
+            height="600px"
+            width="1000px"
             url={remoteStream}
           />
         </>

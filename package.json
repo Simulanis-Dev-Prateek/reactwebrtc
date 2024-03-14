@@ -16,6 +16,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:https": "cross-env HTTPS=true SSL_CRT_FILE=./src/cert.crt SSL_KEY_FILE=./src/cert.key react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -37,5 +38,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
